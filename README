@@ -1,0 +1,61 @@
+BrainF_ck implemented in OCaml.  
+
+Implementing BrainF_ck is one of those essential programmer excercises.
+It's a simple little language for playing with interpreter and compiler
+concepts.
+
+In this case I've implemented it as a direct-threading interpreter 
+meaning that operation functions (op_plus, op_minus, op_right... etc.) 
+are assembled into an array (the op_array in this case) and each
+operation function calls the next function in the array.  The
+op_array contains the "compiled" program.
+
+To build:
+ ocamlc -o brainf brainf.ml
+
+TODO: 
+* Specify a bf file to read on the command line
+* use this example to play with LLVM's optimization, code generation,
+  JIT, etc.
+* How to hardcode the jump table into the op_array?  Instead of keeping 
+  the jump_table and stack around why not insert the actual addresses?
+  EX: ( * below means don't care what the op is)
+  Index:    01234567
+  Code:     [*[*]**]
+  jmp_table:7_4_2__0
+
+  We could write the first op_if in position 0 of the op_array as:
+  let op_if pc data_i = let new_pc =
+                          if data.(data_i) = 0 then
+                            8 (* precalculated and hardcoded *)
+                          else
+                            pc + 1 ;;
+
+  ...then again, we're not really "compiling" yet, we're walking
+  a linear AST of sorts (the op_array).  This leads to:
+* Compile op_array to bytecode and create a bytecode interpreter.
+  op_codes:     BF syntax:
+  0  - end
+  1  - plus       + 
+  2  - minus      - 
+  3  - right      >
+  4  - left       <
+  5  - put        .
+  6  - get        ,
+  7  - if         [
+  8  - back       ]  
+  
+  Note that 7 (if) requires 2 bytes:
+     opcode    branch_false_addr
+  EX:  7              8          #if true jump to 8 (see example above)
+
+  Note that 8 (back) also requires 2 bytes:
+     opcode    return_to_addr
+  EX:  8              0          #jump back to 0 (see example above)
+          
+ 
+* Compile to VHDL for hardware implementation (with some help from LLVM)
+
+
+
+
