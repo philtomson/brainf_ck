@@ -16,16 +16,16 @@ let get_char () = int_of_char(input_char stdin);;
 (* create opcode array & fill with dummy function that takes two ints *)
 let op_array = Array.create code_size (fun (x:int) (y:int) -> Printf.printf
 "\nDone.\n" ) ;;
-let d_stack = Array.init code_size ( fun _ -> 0) ;;
+let data = Array.init code_size ( fun _ -> 0) ;;
 let stack   = Stack.create () ;;
 let jmp_table = Array.init code_size ( fun _ -> 0) ;;
 
 (* direct threading opcodes *)
 
-let op_plus pc data_i   =  d_stack.(data_i) <- d_stack.(data_i) + 1;
+let op_plus pc data_i   =  data.(data_i) <- data.(data_i) + 1;
                            (op_array.(pc+1)) (pc+1) (data_i) ;;
 
-let op_minus pc data_i   =  d_stack.(data_i) <- d_stack.(data_i) - 1;
+let op_minus pc data_i   =  data.(data_i) <- data.(data_i) - 1;
                            (op_array.(pc+1)) (pc+1) (data_i) ;;
 
 let op_right pc data_i  =  (op_array.(pc+1)) (pc+1) (data_i+1);;
@@ -33,14 +33,14 @@ let op_right pc data_i  =  (op_array.(pc+1)) (pc+1) (data_i+1);;
 let op_left pc data_i   =  (op_array.(pc+1)) (pc+1) (data_i-1);;
 
 let op_put  pc data_i   =  
-                           put_char(d_stack.(data_i));
+                           put_char(data.(data_i));
                            (op_array.(pc+1)) (pc+1) data_i;;
 
-let op_get  pc data_i   =  d_stack.(data_i) <- get_char ();
+let op_get  pc data_i   =  data.(data_i) <- get_char ();
                            (op_array.(pc+1)) (pc+1) data_i;;
 
 let op_if  pc data_i    =  let new_pc = 
-                             if d_stack.(data_i) = 0 then 
+                             if data.(data_i) = 0 then 
                                jmp_table.(pc) + 1
                              else
                                pc + 1 in
@@ -51,7 +51,7 @@ let op_back pc data_i   =  let new_pc = jmp_table.(pc) in
 
 let op_end pc data_i = Printf.printf "\nDone\n";;
 
-let bf_compile code  =  
+let build_program code  =  
   each_char (
     fun c offset -> (*Printf.printf "%c : %d" c offset;*)
     match c with
@@ -69,9 +69,9 @@ let bf_compile code  =
     | _   -> () (*skip everything else*) 
   ) code;;
 
+
 let _ = 
   (* print Hello World! *)
-  bf_compile "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";;
-  (* run it *)
+  build_program "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>.";
+  (* run program *)
   op_array.(0) 0 0 ;;
-
